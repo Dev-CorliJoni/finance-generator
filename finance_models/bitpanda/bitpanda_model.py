@@ -38,4 +38,4 @@ class BitpandaModel:
         self._df['Asset market price'] = pd.to_numeric(self._df['Asset market price'])
 
     def to_html(self):
-        return ""
+        return "Test"

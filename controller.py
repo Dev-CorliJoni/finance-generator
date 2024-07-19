@@ -23,7 +23,7 @@ class Controller:
         )
 
         if len(args) == 0:
-            pass # raise Error
+            pass  # raise Error
 
         for arg in args:
             if os.path.isfile(arg):

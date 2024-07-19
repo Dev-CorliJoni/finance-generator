@@ -1,3 +1,5 @@
+from os.path import join
+
 
 def export_html(finance_models: list, export_path: str) -> None:
     template_path = ".\\index_template.html"
@@ -9,5 +11,5 @@ def export_html(finance_models: list, export_path: str) -> None:
     for finance_model in finance_models:
         content = content + finance_model.to_html()
 
-    with open(export_path, 'w') as f:
+    with open(join(export_path, "index.html"), 'w') as f:
         f.write(html.format(website_content=content))

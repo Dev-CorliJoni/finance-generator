@@ -1,5 +1,14 @@
+import argparse
 from controller import Controller
 
+
+def args_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--imports', type=str, nargs='+', help='finance files', required=True)
+    parser.add_argument('-e', '--export', type=str, help='path to export folder', required=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    (Controller("F:\\Finances\\Assets\\Crypto\\bitpanda-trades-2024-07-14-17-29.csv")
-        .export(".\\exports"))
+    args = args_parser()
+    Controller(*args.imports).export(args.export)
