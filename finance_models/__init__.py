@@ -1,0 +1,1 @@
+from finance_models.bitpanda import BitpandaModel
