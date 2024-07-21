@@ -1,0 +1,38 @@
+<div class="staking_item">
+    <div>
+        <h4>{asset_name}</h4>
+    </div>
+
+    <!-- Yearly revenues aut generate -->
+
+     <div class="scrollbar-coat">
+         <div class="scrollbar-container">
+             {reward_items}
+        </div>
+     </div>
+
+    <div style="display: flex; align-items: center; position: relative; overflow: hidden; padding: 0.5rem 2.5rem; border: #405D72 solid 1px; border-radius: 10px; margin: 1rem; background: radial-gradient(circle, white 93%, #F7E7DC 101%);"><!--background: linear-gradient(#758694 0%, #FFFFFF 4%, #FFFFFF 95%, #758694 100%);-->
+        <div id="imagesContainerNonCumulative{asset_name}" style="display: flex; overflow-x: hidden; width: 100%; height: 100%; max-height: 500px">
+            {staking_images_noncumulative}
+        </div>
+
+        <button onclick="imagesContainerNonCumulative{asset_name}.prevImage()" style="position: absolute; top: 50%; transform: translateY(-50%); background-color: transparent; border: none; cursor: pointer; font-size: 2rem; color: #405D72; left: 0;">&#9664;</button>
+        <button onclick="imagesContainerNonCumulative{asset_name}.nextImage()" style="position: absolute; top: 50%; transform: translateY(-50%); background-color: transparent; border: none; cursor: pointer; font-size: 2rem; color: #405D72; right: 0;">&#9654;</button>
+    </div>
+
+    <div style="display: flex; align-items: center; position: relative; overflow: hidden; padding: 0.5rem 2.5rem; border: #405D72 solid 1px; border-radius: 10px; margin: 1rem;  background: radial-gradient(circle, white 93%, #F7E7DC 101%);"><!--background: linear-gradient(#758694 0%, #FFFFFF 4%, #FFFFFF 95%, #758694 100%);-->
+        <div id="imagesContainerCumulative{asset_name}" style="display: flex; overflow-x: hidden; width: 100%; height: 100%; max-height: 500px">
+            {staking_images_cumulative}
+        </div>
+
+        <button onclick="imagesContainerCumulative{asset_name}.prevImage()" style="position: absolute; top: 50%; transform: translateY(-50%); background-color: transparent; border: none; cursor: pointer; font-size: 2rem; color: #405D72; left: 0;">&#9664;</button>
+        <button onclick="imagesContainerCumulative{asset_name}.nextImage()" style="position: absolute; top: 50%; transform: translateY(-50%); background-color: transparent; border: none; cursor: pointer; font-size: 2rem; color: #405D72; right: 0;">&#9654;</button>
+    </div>
+
+    <script>
+        const imagesContainerCumulative{asset_name} = new ImageHandler('imagesContainerCumulative{asset_name}');
+        const imagesContainerNonCumulative{asset_name} = new ImageHandler('imagesContainerNonCumulative{asset_name}');
+    </script>
+
+</div>
+
