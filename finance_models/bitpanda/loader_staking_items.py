@@ -84,10 +84,17 @@ def create_staking_plot(entries_amount, dates, rewards, currency, cumulative, ou
     plt.close()
 
 
-def generate_staking_files(export_folder, dataframe, staking_items):
+def generate_staking_files(export_folder, dataframe, staking_items, start_date, end_date):
 
     for staking_item in staking_items:
-        filtered_df = dataframe[(dataframe['Transaction Type'] == 'reward') & (dataframe["Asset"] == staking_item.asset)]
+        _filter = (dataframe['Transaction Type'] == 'reward') & (dataframe["Asset"] == staking_item.asset)
+
+        if start_date is not None:
+            _filter = _filter & (dataframe['Timestamp'] >= start_date)
+        if end_date is not None:
+            _filter = _filter & (dataframe['Timestamp'] <= end_date)
+
+        filtered_df = dataframe[_filter]
         # cumulative rewards
         filtered_df['cumulative_rewards_fiat'] = filtered_df['Amount Fiat'].cumsum()
 

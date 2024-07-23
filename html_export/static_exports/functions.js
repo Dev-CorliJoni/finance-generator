@@ -6,10 +6,14 @@ class ImageHandler {
         this.container = document.getElementById(selector);
         this.images = this.container.getElementsByTagName('img');
 
+        this.informationDiv = document.getElementById(selector + "SliderInformation");
+
         this.showImage(true)
     }
 
     showImage(init=false) {
+        this.setImageSliderInformation()
+
         Array.from(this.images).forEach((img, i) => {
             let value;
 
@@ -25,14 +29,16 @@ class ImageHandler {
     }
     
     prevImage() {
-        let oldIndex = this.currentIndex
         this.currentIndex = (this.currentIndex > 0) ? this.currentIndex - 1 : this.images.length - 1;
         this.showImage();
     }
 
     nextImage() {
-        let oldIndex = this.currentIndex
         this.currentIndex = (this.currentIndex < this.images.length - 1) ? this.currentIndex + 1 : 0;
         this.showImage();
+    }
+
+    setImageSliderInformation(){
+        this.informationDiv.textContent = (this.currentIndex + 1) + "/" + this.images.length
     }
 }

@@ -46,13 +46,16 @@ class BitpandaModel:
 
         self._staking_items = list(load_staking_items(self._df, self.start_date, self.end_date))
 
-        self._bitpanda_exporter = FinanceHTMLExporter(".\\finance_models\\bitpanda\\html\\bitpanda_export.html")
-        self._staking_item_exporter = FinanceHTMLExporter(".\\finance_models\\bitpanda\\html\\staking_item.html")
-        self._staking_reward_item_exporter = FinanceHTMLExporter(".\\finance_models\\bitpanda\\html\\staking_reward_item.html")
-        self._staking_image_exporter = FinanceHTMLExporter(".\\finance_models\\bitpanda\\html\\staking_image.html")
+        html_path = ".\\finance_models\\bitpanda\\html\\"
+
+        self._bitpanda_exporter = FinanceHTMLExporter(f"{html_path}bitpanda_export.html")
+        self._staking_item_exporter = FinanceHTMLExporter(f"{html_path}staking_item.html")
+        self._staking_reward_item_exporter = FinanceHTMLExporter(f"{html_path}staking_reward_item.html")
+        self._staking_image_exporter = FinanceHTMLExporter(f"{html_path}staking_image.html")
+        self._staking_yearly_reward_exporter = FinanceHTMLExporter(f"{html_path}yearly_reward.html")
 
     def generate_files(self, export_folder):
-        generate_staking_files(export_folder, self._df, self._staking_items)
+        generate_staking_files(export_folder, self._df, self._staking_items, self.start_date, self.end_date)
 
     def to_html(self):
         staking_items_html = ""
@@ -63,14 +66,24 @@ class BitpandaModel:
                 data[key] = value.strftime("%d %b %Y")
 
         for staking_item in self._staking_items:
-            staking_reward_items = ""
-            cumulative_images_html = ""
-            noncumulative_images_html = ""
+            staking_item_args = {
+                "asset_name": staking_item.asset,
+                "yearly_rewards": "",
+                "reward_items": "",
+                "staking_images_noncumulative": "",
+                "staking_images_cumulative": ""
+            }
+
+            for year, rewards, fiat_currency in staking_item.get_rewards_by_year_and_fiat_currency():
+                staking_item_args["yearly_rewards"] += self._staking_yearly_reward_exporter.export_html(
+                    amount_fiat=sum([r.amount_fiat for r in rewards]), fiat_currency=fiat_currency,
+                    amount_asset=sum([r.amount_asset for r in rewards]), asset_currency=staking_item.asset, year=year
+                )
 
             for reward in staking_item.rewards:
-                staking_reward_items = staking_reward_items + self._staking_reward_item_exporter.export_html(
+                staking_item_args["reward_items"] += self._staking_reward_item_exporter.export_html(
                     day=reward.time.strftime("%d %b %Y"), amount_fiat=reward.amount_fiat,
-                    fiat_currency=reward.fiat_currency,amount_asset=reward.amount_asset,
+                    fiat_currency=reward.fiat_currency, amount_asset=reward.amount_asset,
                     asset_currency=staking_item.asset, asset_market_price=reward.asset_market_price,
                     asset_market_price_currency=reward.asset_market_price_currency, tax_fiat=reward.tax_fiat,
                     fee=reward.fee, fee_currency=reward.fee_currency, spread=reward.spread,
@@ -79,12 +92,14 @@ class BitpandaModel:
 
             for noncumulative_images, cumulative_images in staking_item.image_paths:
                 for image in noncumulative_images:
-                    noncumulative_images_html = noncumulative_images_html + self._staking_image_exporter.export_html(path=image)
+                    html_part = self._staking_image_exporter.export_html(path=image)
+                    staking_item_args["staking_images_noncumulative"] += html_part
 
                 for image in cumulative_images:
-                    cumulative_images_html = cumulative_images_html + self._staking_image_exporter.export_html(path=image)
+                    html_part = self._staking_image_exporter.export_html(path=image)
+                    staking_item_args["staking_images_cumulative"] += html_part
 
-            staking_items_html = staking_items_html + self._staking_item_exporter.export_html(asset_name=staking_item.asset, reward_items=staking_reward_items, staking_images_noncumulative=noncumulative_images_html, staking_images_cumulative=cumulative_images_html)
+            staking_items_html = staking_items_html + self._staking_item_exporter.export_html(**staking_item_args)
 
         data["staking_items"] = staking_items_html
         return self._bitpanda_exporter.export_html(**data)
