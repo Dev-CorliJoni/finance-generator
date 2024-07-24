@@ -2,7 +2,7 @@ import os.path
 
 from dataclasses import dataclass, field
 from finance_models import BitpandaModel as _BitpandaModel
-from html_exporter import export_html as _export_html
+from html_export import export_html as _export_html
 
 @dataclass
 class ModelConnection:
@@ -16,7 +16,7 @@ class ModelConnection:
 
 class Controller:
 
-    def __init__(self, *args: str) -> None:
+    def __init__(self, start_date: str, end_date: str, *args: str) -> None:
         self.finance_models = []
         model_connector = (
             ModelConnection("bitpanda-trades", "csv", _BitpandaModel),
@@ -29,9 +29,10 @@ class Controller:
             if os.path.isfile(arg):
                 for model_connection in model_connector:
                     if model_connection.match(arg):
-                        self.finance_models.append(model_connection.model(arg))
+                        self.finance_models.append(model_connection.model(arg, start_date, end_date))
             else:
                 pass  # raise Error
 
-    def export(self, filename: str) -> None:
-        _export_html(self.finance_models, filename)
+    def export(self, export_path: str) -> None:
+        [finance_model.generate_files(export_path) for finance_model in self.finance_models]
+        _export_html(self.finance_models, export_path)

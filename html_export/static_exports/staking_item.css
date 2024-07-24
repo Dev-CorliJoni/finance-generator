@@ -1,0 +1,52 @@
+.staking_item{
+	width: 100% ;
+	margin: 0.5rem 0;
+	border-radius: 10px;
+	padding: 0.5rem;
+	box-sizing: border-box;
+}
+
+.scrollbar-container::-webkit-scrollbar-track
+{
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    border-radius: 10px;
+}
+
+.scrollbar-container::-webkit-scrollbar
+{
+    width: 12px;
+    height: 12px;
+}
+
+.scrollbar-container::-webkit-scrollbar-thumb
+{
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: #405D72;
+}
+
+.scrollbar-coat{
+	background: radial-gradient(transparent 80%, #405D72 100%);
+	height: 300px;
+	padding: 0.5rem 0.25rem 0.5rem 1rem;
+	border: 1px solid #2C495E;
+	border-radius: 50px 15px 15px 50px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	box-sizing: border-box;
+}
+
+.rewards-container
+{    
+	height: 100%;
+	padding: 0 0.5rem;
+	overflow-y: auto;
+	box-sizing: border-box;
+}
+
+.yearly_rewards-container
+{
+    width: 100%;
+    overflow-x: auto;
+    display: flex; 
+    flex-direction: row;
+}
