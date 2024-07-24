@@ -115,10 +115,10 @@ def generate_staking_files(export_folder, dataframe, staking_items, start_date, 
             splitted_dataframes.append((i, splitted_df, i * steps + 1, i * steps + len(splitted_df)))
 
         for i, df, _from, to in splitted_dataframes:
-            relative_cumulative_path = f'.\\StakingRewards{staking_item.asset}Cumulative_{i}.png'
-            relative_noncumulative_path = f'.\\StakingRewards{staking_item.asset}NonCumulative{i}.png'
-            cumulative_path = join(export_folder, relative_cumulative_path.replace(".\\", ""))
-            noncumulative_path = join(export_folder, relative_noncumulative_path.replace(".\\", ""))
+            relative_cumulative_path = f'./StakingRewards{staking_item.asset}Cumulative_{i}.png'
+            relative_noncumulative_path = f'./StakingRewards{staking_item.asset}NonCumulative{i}.png'
+            cumulative_path = join(export_folder, relative_cumulative_path.replace("./", ""))
+            noncumulative_path = join(export_folder, relative_noncumulative_path.replace("./", ""))
 
             fiat_currency = set(df["Fiat"].astype(str).values.tolist()).pop()
             create_staking_plot(f"({_from}-{to})", df['Timestamp'], df['Amount Fiat'], fiat_currency, False, noncumulative_path, 0, noncumalitive_height)

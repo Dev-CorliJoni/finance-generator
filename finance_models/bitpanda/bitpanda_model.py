@@ -46,7 +46,7 @@ class BitpandaModel:
 
         self._staking_items = list(load_staking_items(self._df, self.start_date, self.end_date))
 
-        html_path = ".\\finance_models\\bitpanda\\html\\"
+        html_path = "./finance_models/bitpanda/html/"
 
         self._bitpanda_exporter = FinanceHTMLExporter(f"{html_path}bitpanda_export.html")
         self._staking_item_exporter = FinanceHTMLExporter(f"{html_path}staking_item.html")
