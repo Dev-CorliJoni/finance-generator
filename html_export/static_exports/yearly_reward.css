@@ -1,1 +1,35 @@
+.yearly-reward-item 
+{
+    margin: 1rem 0.5rem; 
+    border: 1px solid #405D72; 
+    border-radius: 10px
+}
 
+.yearly-reward-item-year
+{
+    padding: 0.5rem; 
+    margin-top: 0.5rem;
+    border-top: 1px solid #405D72; 
+    display:flex ; 
+    justify-content: center; 
+    font-weight:bold
+}
+
+.yearly-reward-item-entry 
+{
+    display: flex; 
+    flex-direction: row; 
+    padding: 0.5rem 0.5rem 0 0.5rem;
+}
+
+.yearly-reward-item-entry-name 
+{
+    width: auto;
+}
+
+.yearly-reward-item-entry-value 
+{
+    width: 100%; 
+    text-align: end; 
+    margin-left: 0.25rem;
+}
