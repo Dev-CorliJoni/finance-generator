@@ -1,11 +1,21 @@
-<div style="margin: 1rem">
-  <div>
-    {amount_fiat} {fiat_currency}
-  </div>
-  <div>
-    {amount_asset} {asset_currency}
-  </div>
-  <div>
-    {year}
-  </div>
+<div class="yearly-reward-item">
+    <div class="yearly-reward-item-entry">
+        <div class="yearly-reward-item-entry-name">
+            {fiat_currency}: 
+        </div>
+        <div class="yearly-reward-item-entry-value">
+            {amount_fiat}
+        </div>
+    </div>
+    <div class="yearly-reward-item-entry">
+        <div class="yearly-reward-item-entry-name">
+            {asset_currency}: 
+        </div>
+        <div class="yearly-reward-item-entry-value">
+            {amount_asset}
+        </div>
+    </div>
+    <div class="yearly-reward-item-year">
+      {year}
+    </div>
 </div>
