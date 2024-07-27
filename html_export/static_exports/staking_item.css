@@ -1,9 +1,18 @@
-.staking_item{
-	width: 100% ;
-	margin: 0.5rem 0;
-	border-radius: 10px;
-	padding: 0.5rem;
+.staking-item{
+	width: 100%;
+	padding: 1rem;
 	box-sizing: border-box;
+}
+
+.staking-asset-div{
+	border-radius: 10px;
+	max-width: min-content;
+	padding: 1rem;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.staking-asset{
+	margin: 0;
 }
 
 .scrollbar-container::-webkit-scrollbar-track
@@ -26,12 +35,10 @@
 }
 
 .scrollbar-coat{
-	background: radial-gradient(transparent 80%, #405D72 100%);
 	height: 300px;
 	padding: 0.5rem 0.25rem 0.5rem 1rem;
-	border: 1px solid #2C495E;
 	border-radius: 50px 15px 15px 50px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 	box-sizing: border-box;
 }
 

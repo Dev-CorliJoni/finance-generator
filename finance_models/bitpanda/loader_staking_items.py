@@ -48,7 +48,8 @@ def create_staking_plot(entries_amount, dates, rewards, currency, cumulative, ou
     bar_width = 0.75
     fig_width = max(bar_width * len(dates) * 2, 6)
     plt.figure(figsize=(fig_width, 6))
-    figure = plt.bar(x_values, rewards, color='g', width=bar_width)
+    # Use a darker green that complements the background
+    figure = plt.bar(x_values, rewards, color='#4E8271', width=bar_width)
 
     # Add value annotations on top of each bar
     for bar in figure:
@@ -60,22 +61,33 @@ def create_staking_plot(entries_amount, dates, rewards, currency, cumulative, ou
             ha='center',  # Horizontal alignment
             va='bottom',  # Vertical alignment
             fontsize=10,  # Font size
-            color='black'  # Text color
+            color='#F7E7DC'  # Text color, same as label color for consistency
         )
 
-    plt.xlabel('Date')
-    plt.ylabel(f'Amount ({currency})')
-    plt.title(f"Cumulative Rewards{entries_amount}" if cumulative else f"Rewards{entries_amount}")
+    # Setting the labels and title colors to a lighter tone
+    plt.xlabel('Date', color='#F7E7DC')
+    plt.ylabel(f'Amount ({currency})', color='#F7E7DC')
+    plt.title(f"Cumulative Rewards {entries_amount}" if cumulative else f"Rewards {entries_amount}", color='#F7E7DC')
 
     # Rotate x-axis labels and adjust size
-    plt.xticks(rotation=45, ha='right')  # Rotate labels and align them
+    plt.xticks(rotation=45, ha='right', color='#F7E7DC')  # Rotate labels and set color
+    plt.yticks(color='#F7E7DC')  # Set y-tick labels color
     plt.tight_layout()  # Automatically adjust subplot parameters to give some padding
 
-    plt.grid(True, axis='y')
+    # Set grid color and style
+    plt.grid(True, axis='y', color="#F7E7DC", linestyle='--', linewidth=1)
 
     # Set vertical range if specified
     if y_min is not None and y_max is not None:
         plt.ylim(y_min, y_max)
+
+    ax = plt.gca()  # Get current axes
+    ax.set_facecolor('#455A64')  # Background color of the plot area
+    plt.gcf().set_facecolor('#455A64')  # Background color of the figure
+
+    # Set the border (spines) color to a lighter tone
+    for spine in ax.spines.values():
+        spine.set_edgecolor('#F7E7DC')
 
     plt.savefig(output_file, bbox_inches='tight')
 

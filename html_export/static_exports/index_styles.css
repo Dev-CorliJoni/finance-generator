@@ -15,6 +15,9 @@ body{
     box-sizing: border-box;
     display: flex;
     align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.75);
+    position: relative; /* Damit der z-index funktioniert */
+    z-index: 1;
 }
 
 .heading_base {
@@ -22,10 +25,6 @@ body{
     padding: 20px;
     color: #F7E7DC;
     font-size: 24px;
-}
-
-.heading{
-    text-decoration: underline;
 }
 
 .website_content_div{

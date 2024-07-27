@@ -1,10 +1,8 @@
 .staking_reward_item{
-    background:linear-gradient(200deg, #758694, #405D72);
     padding: 0.5rem;
     margin-bottom: 0.5rem;
-    border: 1px solid #2C495E;
     border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
     transition: background-color 0.3s ease;
     display: flex;
     flex-wrap: nowrap;
