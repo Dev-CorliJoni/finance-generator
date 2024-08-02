@@ -10,7 +10,7 @@
 
 .staking_reward_item_cell{
     min-width: fit-content;
-    width: 11%;
+    width: 100%;
     padding: 0 0.25rem;
     display:flex;
     justify-content: center;

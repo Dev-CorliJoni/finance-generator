@@ -6,6 +6,7 @@ from html_export import export_html as _export_html
 
 @dataclass
 class ModelConnection:
+    name: str = field()
     name_part: str = field()
     file_extension: str = field()
     model: type = field(default_factory=lambda: None)
@@ -17,9 +18,9 @@ class ModelConnection:
 class Controller:
 
     def __init__(self, start_date: str, end_date: str, *args: str) -> None:
-        self.finance_models = []
+        self.finance_models = {}
         model_connector = (
-            ModelConnection("bitpanda-trades", "csv", _BitpandaModel),
+            ModelConnection("Bitpanda", "bitpanda-trades", "csv", _BitpandaModel),
         )
 
         if len(args) == 0:
@@ -29,10 +30,11 @@ class Controller:
             if os.path.isfile(arg):
                 for model_connection in model_connector:
                     if model_connection.match(arg):
-                        self.finance_models.append(model_connection.model(arg, start_date, end_date))
+                        name = model_connection.name
+                        self.finance_models[name] = model_connection.model(name, arg, start_date, end_date)
             else:
                 pass  # raise Error
 
     def export(self, export_path: str) -> None:
-        [finance_model.generate_files(export_path) for finance_model in self.finance_models]
+        [finance_model.generate_files(export_path) for finance_model in self.finance_models.values()]
         _export_html(self.finance_models, export_path)

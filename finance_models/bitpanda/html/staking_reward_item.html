@@ -14,13 +14,18 @@
     <div class="staking_reward_item_cell">
         Asset Market Price: {asset_market_price}{asset_market_price_currency}
     </div>
-    <div class="staking_reward_item_cell">
+    <div id="staking_reward_tax{reward_id}" class="staking_reward_item_cell">
         Tax: {tax_fiat}{fiat_currency}
     </div>
-    <div class="staking_reward_item_cell">
+    <div id="staking_reward_fee{reward_id}" class="staking_reward_item_cell">
         Fee: {fee}{fee_currency}
     </div>
-    <div class="staking_reward_item_cell">
+    <div id="staking_reward_spread{reward_id}" class="staking_reward_item_cell">
         Spread: {spread}{spread_currency}
     </div>
+    <script>
+        if({is_tax_always_none}) document.getElementById("staking_reward_tax{reward_id}").style.display = 'none';
+        if({is_fee_always_none}) document.getElementById("staking_reward_fee{reward_id}").style.display = 'none';
+        if({is_spread_always_none}) document.getElementById("staking_reward_spread{reward_id}").style.display = 'none';
+    </script >
 </div>

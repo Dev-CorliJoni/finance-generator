@@ -1,24 +1,10 @@
-from finance_models.bitpanda.models import StakingItem, Reward
+from finance_models.bitpanda.models import StakingItem, Transaction
 import matplotlib.pyplot as plt
 from os.path import join
 from math import ceil
 
 
 def load_staking_items(df, start_date, end_date):
-    reward_arg_connector = {
-        "time": "Timestamp",
-        "amount_fiat": "Amount Fiat",
-        "tax_fiat": "Tax Fiat",
-        "fiat_currency": "Fiat",
-        "amount_asset": "Amount Asset",
-        "asset_market_price": "Asset market price",
-        "asset_market_price_currency": "Asset market price currency",
-        "fee": "Fee",
-        "fee_currency": "Fee asset",
-        "spread": "Spread",
-        "spread_currency": "Spread Currency"
-    }
-
     # create filter for rewards between a given timespan (If passed as an argument)
     _filter = (df['Transaction Type'] == 'reward')
 
@@ -37,7 +23,7 @@ def load_staking_items(df, start_date, end_date):
         rewards = []
 
         for index, reward in reward_data.iterrows():
-            rewards.append(Reward(**{arg: reward[value_key] for arg, value_key in reward_arg_connector.items()}))
+            rewards.append(Transaction.create(reward))
 
         yield StakingItem(asset, rewards)  # load image paths
 
@@ -106,9 +92,9 @@ def generate_staking_files(export_folder, dataframe, staking_items, start_date, 
         if end_date is not None:
             _filter = _filter & (dataframe['Timestamp'] <= end_date)
 
-        filtered_df = dataframe[_filter]
+        filtered_df = dataframe[_filter].copy()
         # cumulative rewards
-        filtered_df['cumulative_rewards_fiat'] = filtered_df['Amount Fiat'].cumsum()
+        filtered_df.loc[:, 'cumulative_rewards_fiat'] = filtered_df['Amount Fiat'].cumsum()
 
         paths = ([], [])
 

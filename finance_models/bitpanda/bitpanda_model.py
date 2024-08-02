@@ -1,14 +1,19 @@
+import math
+
 import pandas as pd
 from datetime import datetime
 
 from finance_models.bitpanda.loader_staking_items import load_staking_items, generate_staking_files
+from finance_models.bitpanda.loader_crypto_overview_item import load_crypto_overview_item
 from finance_models.finance_html_exporter import FinanceHTMLExporter
 
 
 class BitpandaModel:
 
-    def __init__(self, csv_path, start_date, end_date):
+    def __init__(self, model_name, csv_path, start_date, end_date):
         self._path = csv_path
+
+        self.model_name = model_name
 
         self.start_date = pd.to_datetime(start_date, utc=True) if start_date is not None and start_date != "" else None
         self.end_date = pd.to_datetime(end_date, utc=True) if end_date is not None and end_date != "" else None
@@ -45,6 +50,7 @@ class BitpandaModel:
         self._df = self._df.sort_values(by='Timestamp')
 
         self._staking_items = list(load_staking_items(self._df, self.start_date, self.end_date))
+        self._crypto_overview_item = load_crypto_overview_item(self._df)
 
         html_path = "./finance_models/bitpanda/html/"
 
@@ -80,15 +86,32 @@ class BitpandaModel:
                     amount_asset=sum([r.amount_asset for r in rewards]), asset_currency=staking_item.asset, year=year
                 )
 
-            for reward in staking_item.rewards:
-                staking_item_args["reward_items"] += self._staking_reward_item_exporter.export_html(
-                    day=reward.time.strftime("%d %b %Y"), amount_fiat=reward.amount_fiat,
-                    fiat_currency=reward.fiat_currency, amount_asset=reward.amount_asset,
-                    asset_currency=staking_item.asset, asset_market_price=reward.asset_market_price,
-                    asset_market_price_currency=reward.asset_market_price_currency, tax_fiat=reward.tax_fiat,
-                    fee=reward.fee, fee_currency=reward.fee_currency, spread=reward.spread,
-                    spread_currency=reward.spread_currency
-                )
+            for i, reward in enumerate(staking_item.rewards):
+
+                is_tax_always_none = all([math.isnan(reward.tax_fiat) for reward in staking_item.rewards])
+                is_fee_always_none = all([math.isnan(reward.fee) for reward in staking_item.rewards])
+                is_spread_always_none = all([math.isnan(reward.spread) for reward in staking_item.rewards])
+
+                reward_args = {
+                    "day": reward.time.strftime("%d %b %Y"),
+                    "amount_fiat": reward.amount_fiat,
+                    "fiat_currency": reward.fiat_currency,
+                    "amount_asset": reward.amount_asset,
+                    "asset_currency": reward.asset,
+                    "asset_market_price": reward.asset_market_price,
+                    "asset_market_price_currency": reward.asset_market_price_currency,
+                    "tax_fiat": reward.tax_fiat,
+                    "fee": reward.fee,
+                    "fee_currency": reward.fee_asset,
+                    "spread": reward.spread,
+                    "spread_currency": reward.spread_currency,
+                    "reward_id": f"{staking_item.asset}{i}",
+                    "is_tax_always_none": "true" if is_tax_always_none else "false",
+                    "is_fee_always_none": "true" if is_fee_always_none else "false",
+                    "is_spread_always_none": "true" if is_spread_always_none else "false"
+                }
+
+                staking_item_args["reward_items"] += self._staking_reward_item_exporter.export_html(**reward_args)
 
             for noncumulative_images, cumulative_images in staking_item.image_paths:
                 for image in noncumulative_images:

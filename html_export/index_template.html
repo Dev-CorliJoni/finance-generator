@@ -14,13 +14,22 @@
     <body>
         <script src="./static_exports/functions.js"></script>
 
-        <div class="heading_div"><!--Head-->
+        <div  class="heading_div"><!--Head-->
             <h1 class="heading_base">&#x1F4B8;</h1>
             <h1 class="heading_base">Finance Export</h1>
+        </div>
+
+        <div class="export_filter">
+            {filter}
         </div>
 
         <div class="website_content_div"><!--Website Content-->
             {website_content}
         </div>
+
+        <script>
+            element = document.querySelectorAll('div[type="filter"]')[0]
+            filter_export(element.innerHTML.trim(), element)
+        </script>
     </body>
 </html>

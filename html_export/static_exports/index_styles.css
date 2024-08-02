@@ -7,6 +7,7 @@ html, body {
 body{
     min-height: 100%;
     background: #758694;
+    color: #F7E7DC;
 }
 
 .heading_div{
@@ -25,6 +26,35 @@ body{
     padding: 20px;
     color: #F7E7DC;
     font-size: 24px;
+}
+
+.export_filter > div[type="filter"] {
+    background: #607080;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+    font-size: 16px;
+    margin: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.export_filter > div[type="filter"]:hover {
+    background-color: #687A8A
+}
+
+.export_filter > div[type="filter"].active {
+    background-color: #405D72;
+}
+
+.export_filter > div[type="filter"].active:hover {
+    background-color: #506780
+}
+
+.export_filter{
+    margin: 2rem 1rem 0 1rem;
 }
 
 .website_content_div{

@@ -1,3 +1,6 @@
+const imageHandler = {};
+
+
 class ImageHandler {
 
     constructor(selector) {
@@ -9,22 +12,41 @@ class ImageHandler {
         this.informationDiv = document.getElementById(selector + "SliderInformation");
 
         this.showImage(true)
+
+        window.addEventListener('resize', () => this.showImage(true));
     }
 
     showImage(init=false) {
         this.setImageSliderInformation()
 
-        Array.from(this.images).forEach((img, i) => {
-            let value;
+        // Ensure all images are loaded before calculating dimensions
+        const imagesLoadedPromises = Array.from(this.images).map(img => {
+            return new Promise(resolve => {
+                if (img.complete) {
+                    resolve();
+                } else {
+                    img.onload = resolve;
+                }
+            });
+        });
 
-            if (init){
-                value= (i - this.currentIndex) * this.container.clientWidth;
-            }
-            else{
-                value = this.currentIndex * -this.container.clientWidth;
-            }
+        Promise.all(imagesLoadedPromises).then(() => {
 
-            img.style.transform = `translateX(${value}px)`;
+            Array.from(this.images).forEach((img, i) => {
+                let value;
+                console.log(`${img.x} ${img.clientX} ${img.x1}`)
+
+                if (init) {
+                    value = ((i - this.currentIndex) * this.container.clientWidth) + ((this.container.clientWidth - img.clientWidth) / 2);
+                } else {
+                    const padding = (this.container.clientWidth - img.clientWidth) * i  + ((this.container.clientWidth - img.clientWidth) / 2);
+                    //console.log(`${i} ${this.container.clientWidth} ${img.clientWidth} ${padding}`)
+                    value = (this.currentIndex * -this.container.clientWidth) + (padding);
+                }
+
+                img.style.transform = `translateX(${value}px)`;
+            });
+
         });
     }
     
@@ -41,4 +63,26 @@ class ImageHandler {
     setImageSliderInformation(){
         this.informationDiv.textContent = (this.currentIndex + 1) + "/" + this.images.length
     }
+}
+
+function addImageHandler(imageHandlerSelectorName) {
+    document.addEventListener('DOMContentLoaded', (event) => {
+        imageHandler[imageHandlerSelectorName] = new ImageHandler(imageHandlerSelectorName);
+    });
+}
+
+function filter_export(name, element){
+    const buttons = document.querySelectorAll('.export_filter > div[type="filter"]');
+    buttons.forEach(function(button) {
+        button.classList.remove('active');
+    });
+
+    element.classList.add('active');
+
+    document.querySelectorAll('div[type="finance_model"]').forEach(
+        (div) => {
+            div.style.display = 'none'
+        });
+
+    document.getElementById(name).style.display = 'block';
 }
