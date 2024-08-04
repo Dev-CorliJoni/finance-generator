@@ -6,81 +6,91 @@ from finance_models.bitpanda.models import Transaction
 class LogMessages:
 
     @staticmethod
-    def entry(out_item_name, in_item_name, out_item, in_item):
+    def entry(out_item, in_item, out_item_name, out_item_verb=""):
+        out_item_verb = out_item_verb if out_item_verb != "" else out_item_name.lower()
         return """
----- {out_item_name}(id={id1}, time={time1}) - Attempt to {o_name_s} crypto of this {in_item_name}(id={id2}, time={time2}) ----
-""".format(o_name_s=out_item_name.lower(), id1=out_item.item.id, time1=out_item.item.time, out_item_name=out_item_name,
-           id2=in_item.item.id, time2=in_item.item.time, in_item_name=in_item_name)
+---- {out_item_name}(id={id1}, time={time1}) - Attempt to {o_name_s} this Crypto(id={id2}, time={time2}) ----
+""".format(o_name_s=out_item_verb, id1=out_item.item.id, time1=out_item.item.time, out_item_name=out_item_name,
+           id2=in_item.item.id, time2=in_item.item.time)
 
     @staticmethod
-    def transfer_entry(transfer_item, buy_item):
-        return LogMessages.entry("Transfer", "Buy", transfer_item, buy_item)
+    def transfer_entry(transfer_item, crypto_item):
+        return LogMessages.entry(transfer_item, crypto_item, "Transfer")
 
     @staticmethod
-    def sell_entry(sell_item, buy_item):
-        return LogMessages.entry("Sell", "Buy", sell_item, buy_item)
+    def sell_entry(sell_item, crypto_item):
+        return LogMessages.entry(sell_item, crypto_item, "Sell")
 
     @staticmethod
-    def transfer_start(buy_item, transfer_item, **kwargs):
+    def withdrawal_entry(withdrawal_item, crypto_item):
+        return LogMessages.entry(withdrawal_item, crypto_item, "Withdrawal", "withdraw")
+
+    @staticmethod
+    def get_item_information(crypto_item, processing_item, processing_name):
+        return ("""
+            Crypto Item: Available({calc_asset1}{asset1}, {calc_fiat1}{fiat1}) Staked({staked_asset1}{asset1}, {staked_fiat1}{fiat1}) Withdrew({withdrew_asset1}{asset1}, {withdrew_fiat1}{fiat1})
+            {processing_name} Item: Amount({calc_asset2}{asset2}, In/Out={inout})"""
+                .format(calc_asset1=crypto_item.calculation_asset, calc_fiat1=crypto_item.calculation_fiat,
+                        staked_asset1=crypto_item.staked_asset, staked_fiat1=crypto_item.staked_fiat,
+                        withdrew_asset1=crypto_item.withdrew_asset, withdrew_fiat1=crypto_item.withdrew_fiat,
+                        asset1=crypto_item.item.asset, fiat1=crypto_item.item.fiat_currency,
+                        calc_asset2=processing_item.calculation_asset, asset2=processing_item.item.asset,
+                        inout=processing_item.item.in_out, processing_name=processing_name))
+
+    @staticmethod
+    def send_start(crypto_item, processing_item, processing_name, **kwargs):
         return """
-            Before Transaction:
-            Buy Item: Available({calc_asset1}{asset1}, {calc_fiat1}{fiat1}) Staked({staked_asset1}{asset1}, {staked_fiat1}{fiat1})
-            Transfer Item: TransferAmount({calc_asset2}{asset2}, In/Out: {inout}
-            Percentage (Buy Available Amount / Transfer Amount): {p_in_n}
+            Before Transaction:{item_information}
+            Percentage (Crypto Available Amount / {processing_name} Amount): {p_in_n}
 
-            Calculated Transfer Amount:
+            Calculated affected Amount:
             Amount Asset: {amount_asset}{asset1}
             Amount Fiat: {amount_fiat}{fiat1}
-            """.format(calc_asset1=buy_item.calculation_asset, asset1=buy_item.item.asset,
-                       calc_fiat1=buy_item.calculation_fiat, fiat1=buy_item.item.fiat_currency,
-                       staked_asset1=buy_item.staked_asset, staked_fiat1=buy_item.staked_fiat,
-                       calc_asset2=transfer_item.calculation_asset, asset2=transfer_item.item.asset,
-                       inout=transfer_item.item.in_out, **kwargs)
+            """.format(item_information=LogMessages.get_item_information(crypto_item, processing_item, processing_name),
+                       fiat1=crypto_item.item.fiat_currency, asset1=crypto_item.item.asset,
+                       processing_name=processing_name, **kwargs)
 
     @staticmethod
-    def sell_start(buy_item, sell_item, **kwargs):
+    def transfer_start(crypto_item, transfer_item, **kwargs):
+        return LogMessages.send_start(crypto_item, transfer_item, "Transfer", **kwargs)
+
+    @staticmethod
+    def withdrawal_start(crypto_item, withdrawal_item, **kwargs):
+        return LogMessages.send_start(crypto_item, withdrawal_item, "Withdrawal", **kwargs)
+
+    @staticmethod
+    def sell_start(crypto_item, sell_item, **kwargs):
         return """
-            Before Transaction:
-            Buy Item: Available({calc_asset1}{asset1}, {calc_fiat1}{fiat1}) Staked({staked_asset1}{asset1}, {staked_fiat1}{fiat1})
-            Sell Item: SellAmount({calc_asset2}{asset2}, {calc_fiat2}{fiat2})
+            Before Transaction:{item_information}
             Percentage (Buy Available Amount / Sell Amount): {p_in}            
             Percentage (Sell Amount / Buy Available Amount): {p_out}
-            """.format(calc_asset1=buy_item.calculation_asset, asset1=buy_item.item.asset,
-                       calc_fiat1=buy_item.calculation_fiat,
-                       staked_asset1=buy_item.staked_asset, staked_fiat1=buy_item.staked_fiat,
-                       fiat1=buy_item.item.fiat_currency,
-                       calc_asset2=sell_item.calculation_asset, asset2=sell_item.item.asset,
-                       calc_fiat2=sell_item.calculation_fiat, fiat2=sell_item.item.fiat_currency, **kwargs)
+            """.format(item_information=LogMessages.get_item_information(crypto_item, sell_item, "Sell"), **kwargs)
 
     @staticmethod
-    def transfer_end(buy_item, transfer_item, **kwargs):
+    def end_item_update(crypto_item, processing_item, processing_name):
         return """
-            After Transaction:
-            Buy Item: Available({calc_asset1}{asset1}, {calc_fiat1}{fiat1}) Staked({staked_asset1}{asset1}, {staked_fiat1}{fiat1})
-            Transfer Item: TransferAmount({calc_asset2}{asset2})
-            """.format(calc_asset1=buy_item.calculation_asset, asset1=buy_item.item.asset,
-                       calc_fiat1=buy_item.calculation_fiat, fiat1=buy_item.item.fiat_currency,
-                       staked_asset1=buy_item.staked_asset, staked_fiat1=buy_item.staked_fiat,
-                       calc_asset2=transfer_item.calculation_asset, asset2=transfer_item.item.asset, **kwargs)
+            After Transaction:{item_information}
+                """.format(item_information=LogMessages.get_item_information(crypto_item, processing_item, processing_name))
 
     @staticmethod
-    def sell_end(buy_item, sell_item, **kwargs):
+    def transfer_end(crypto_item, transfer_item, **kwargs):
+        return LogMessages.end_item_update(crypto_item, transfer_item, "Transfer")
+
+    @staticmethod
+    def withdrawal_end(crypto_item, withdrawal_item, **kwargs):
+        return LogMessages.end_item_update(crypto_item, withdrawal_item, "Withdrawal")
+
+    @staticmethod
+    def sell_end(crypto_item, sell_item, **kwargs):
         return """
             Calculated:
             Buy Value: {buy_price}{fiat1}
             Sell Value: {sell_price}{fiat2}
             Taxes (payed): {payed_taxes}{fiat2} | Sell Taxable: {is_taxable}
             Profit: {profit}{fiat1}
-            
-            After Transaction:
-            Buy Item: Available({calc_asset1}{asset1}, {calc_fiat1}{fiat1}) Staked({staked_asset1}{asset1}, {staked_fiat1}{fiat1})
-            Sell Item: SellAmount({calc_asset2}{asset2}, {calc_fiat2}{fiat2})
-            """.format(calc_asset1=buy_item.calculation_asset, asset1=buy_item.item.asset,
-                       staked_asset1=buy_item.staked_asset, staked_fiat1=buy_item.staked_fiat,
-                       calc_fiat1=buy_item.calculation_fiat,
-                       calc_asset2=sell_item.calculation_asset, asset2=sell_item.item.asset,
-                       calc_fiat2=sell_item.calculation_fiat,
-                       fiat1=buy_item.item.fiat_currency, fiat2=sell_item.item.fiat_currency, **kwargs)
+            {end_item_update}
+            """.format(end_item_update=LogMessages.end_item_update(crypto_item, sell_item, "Sell"),
+                       fiat1=crypto_item.item.fiat_currency, fiat2=sell_item.item.fiat_currency, **kwargs)
 
 
 def _get_percentage_of(base_item, percentage_item):
@@ -95,7 +105,10 @@ class CalcAssetItem:
         self.staked_asset = self.item.amount_asset if self.is_rewards_type() else 0
         self.staked_fiat = self.item.amount_fiat if self.is_rewards_type() else 0
 
-        self.calculation_asset = self.item.amount_asset
+        self.withdrew_asset = 0
+        self.withdrew_fiat = 0
+
+        self.calculation_asset = self.item.amount_asset + self.item.fee if self.is_withdraw_type() else self.item.amount_asset
         self.calculation_fiat = self.item.amount_fiat
 
         self.calculation_asset -= self.staked_asset
@@ -151,11 +164,11 @@ class CalcAssetItem:
         return log
 
     def transfer_outgoing(self, transfer_item, log):
-        percentage_buy_item = _get_percentage_of(self.calculation_asset, transfer_item.calculation_asset)
-        amount = self.calculation_asset * percentage_buy_item
-        amount_fiat = self.calculation_fiat * percentage_buy_item
+        percentage_crypto_item = _get_percentage_of(self.calculation_asset, transfer_item.calculation_asset)
+        amount = self.calculation_asset * percentage_crypto_item
+        amount_fiat = self.calculation_fiat * percentage_crypto_item
 
-        log += LogMessages.transfer_start(self, transfer_item, p_in_n=percentage_buy_item, amount_asset=amount,
+        log += LogMessages.transfer_start(self, transfer_item, p_in_n=percentage_crypto_item, amount_asset=amount,
                                           amount_fiat=amount_fiat)
 
         self.staked_asset += amount
@@ -164,15 +177,14 @@ class CalcAssetItem:
         self.calculation_fiat -= amount_fiat
         transfer_item.calculation_asset -= amount
 
-        return log + LogMessages.transfer_end(self, transfer_item, p_in_n=percentage_buy_item, amount_asset=amount,
-                                              amount_fiat=amount_fiat)
+        return log + LogMessages.transfer_end(self, transfer_item)
 
     def transfer_incoming(self, transfer_item, log):
-        percentage_buy_item = _get_percentage_of(self.staked_asset, transfer_item.calculation_asset)
-        amount = self.staked_asset * percentage_buy_item
-        amount_fiat = self.staked_fiat * percentage_buy_item
+        percentage_crypto_item = _get_percentage_of(self.staked_asset, transfer_item.calculation_asset)
+        amount = self.staked_asset * percentage_crypto_item
+        amount_fiat = self.staked_fiat * percentage_crypto_item
 
-        log += LogMessages.transfer_start(self, transfer_item, p_in_n=percentage_buy_item, amount_asset=amount,
+        log += LogMessages.transfer_start(self, transfer_item, p_in_n=percentage_crypto_item, amount_asset=amount,
                                           amount_fiat=amount_fiat)
 
         self.staked_asset -= amount
@@ -181,8 +193,7 @@ class CalcAssetItem:
         self.calculation_fiat += amount_fiat
         transfer_item.calculation_asset -= amount
 
-        return log + LogMessages.transfer_end(self, transfer_item, p_in_n=percentage_buy_item, amount_asset=amount,
-                                              amount_fiat=amount_fiat)
+        return log + LogMessages.transfer_end(self, transfer_item)
 
     def sell(self, sell_item):
         if self.calculation_asset <= 0:
@@ -214,6 +225,52 @@ class CalcAssetItem:
         log += LogMessages.sell_end(self, sell_item, buy_price=buy_price, sell_price=sell_price,
                                     payed_taxes=payed_taxes, is_taxable=is_taxable, profit=profit)
         return log, profit, payed_taxes, is_taxable
+
+    def withdrawal(self, withdrawal_item):
+        if (self.calculation_asset <= 0 and withdrawal_item.is_outgoing() or
+                self.withdrew_asset <= 0 and withdrawal_item.is_incoming()):
+            return ""
+
+        log = LogMessages.withdrawal_entry(withdrawal_item, self)
+
+        if withdrawal_item.is_outgoing():
+            log = self.withdrawal_outgoing(withdrawal_item, log)
+        elif withdrawal_item.is_incoming():
+            log = self.withdrawal_incoming(withdrawal_item, log)
+
+        return log
+
+    def withdrawal_outgoing(self, withdrawal_item, log):
+        percentage_crypto_item = _get_percentage_of(self.calculation_asset, withdrawal_item.calculation_asset)
+        amount = self.calculation_asset * percentage_crypto_item
+        amount_fiat = self.calculation_fiat * percentage_crypto_item
+
+        log += LogMessages.withdrawal_start(self, withdrawal_item, p_in_n=percentage_crypto_item, amount_asset=amount, amount_fiat=amount_fiat)
+
+        self.withdrew_asset += amount
+        self.withdrew_fiat += amount_fiat
+        self.calculation_asset -= amount
+        self.calculation_fiat -= amount_fiat
+        withdrawal_item.calculation_asset -= amount
+
+        return log + LogMessages.withdrawal_end(self, withdrawal_item)
+
+    def withdrawal_incoming(self, withdrawal_item, log):
+        percentage_crypto_item = _get_percentage_of(self.withdrew_asset, withdrawal_item.calculation_asset)
+        amount = self.withdrew_asset * percentage_crypto_item
+        amount_fiat = self.withdrew_fiat * percentage_crypto_item
+
+        log += LogMessages.withdrawal_start(self, withdrawal_item, p_in_n=percentage_crypto_item, amount_asset=amount, amount_fiat=amount_fiat)
+
+        self.withdrew_asset -= amount
+        self.withdrew_fiat -= amount_fiat
+        self.calculation_asset += amount
+        self.calculation_fiat += amount_fiat
+        withdrawal_item.calculation_asset -= amount
+
+   ## costssss
+
+        return log + LogMessages.transfer_end(self, withdrawal_item)
 
     def __hash__(self):
         return hash(self.item)

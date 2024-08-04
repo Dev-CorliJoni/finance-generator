@@ -78,18 +78,18 @@ def get_profits(asset, asset_items):
         for incoming_item in incoming_filtered:
             log = ""
 
+            if processing_item.is_processed():
+                break
+
             if processing_item.is_sell_type():
                 log, profit, payed_tax, is_taxable = incoming_item.sell(processing_item)
 
             elif processing_item.is_withdraw_type():
-                log = ""
+                log = incoming_item.withdrawal(processing_item)
 
             elif processing_item.is_transfer_type() and incoming_item.is_buy_type():
                 log = incoming_item.transfer(processing_item)
 
             asset_log += log
-
-            if processing_item.is_processed():
-                break
 
     print(asset_log)
