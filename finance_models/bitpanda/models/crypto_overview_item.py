@@ -44,8 +44,8 @@ class LogMessages:
             Percentage (Crypto Available Amount / {processing_name} Amount): {p_in_n}
 
             Calculated affected Amount:
-            Amount Asset: {amount_asset}{asset1}
-            Amount Fiat: {amount_fiat}{fiat1}
+            Amount Asset:\t{amount_asset}{asset1}
+            Amount Fiat:\t{amount_fiat}{fiat1}
             """.format(item_information=LogMessages.get_item_information(crypto_item, processing_item, processing_name),
                        fiat1=crypto_item.item.fiat_currency, asset1=crypto_item.item.asset,
                        processing_name=processing_name, **kwargs)
@@ -56,7 +56,10 @@ class LogMessages:
 
     @staticmethod
     def withdrawal_start(crypto_item, withdrawal_item, **kwargs):
-        return LogMessages.send_start(crypto_item, withdrawal_item, "Withdrawal", **kwargs)
+        return """{start_info}Fee:\t\t\t{fee_asset}{asset1}
+            Fee Fiat:\t\t{fee_fiat}{fiat1}
+        """.format(**kwargs, fiat1=crypto_item.item.fiat_currency, asset1=crypto_item.item.asset,
+                   start_info=LogMessages.send_start(crypto_item, withdrawal_item, "Withdrawal", **kwargs))
 
     @staticmethod
     def sell_start(crypto_item, sell_item, **kwargs):
@@ -84,10 +87,10 @@ class LogMessages:
     def sell_end(crypto_item, sell_item, **kwargs):
         return """
             Calculated:
-            Buy Value: {buy_price}{fiat1}
-            Sell Value: {sell_price}{fiat2}
-            Taxes (payed): {payed_taxes}{fiat2} | Sell Taxable: {is_taxable}
-            Profit: {profit}{fiat1}
+            Buy Value:\t\t{buy_price}{fiat1}
+            Sell Value:\t\t{sell_price}{fiat2}
+            Taxes (payed):\t{payed_taxes}{fiat2} | Sell Taxable: {is_taxable}
+            Profit:\t\t\t{profit}{fiat1}
             {end_item_update}
             """.format(end_item_update=LogMessages.end_item_update(crypto_item, sell_item, "Sell"),
                        fiat1=crypto_item.item.fiat_currency, fiat2=sell_item.item.fiat_currency, **kwargs)
@@ -108,22 +111,14 @@ class CalcAssetItem:
         self.withdrew_asset = 0
         self.withdrew_fiat = 0
 
-        self.calculation_asset = self.item.amount_asset + self.item.fee if self.is_withdraw_type() else self.item.amount_asset
+        self.payed_fee = 0
+
+        self.calculation_asset = self.item.amount_asset
+        self.calculation_asset = self.calculation_asset + self.item.fee if self.is_withdraw_type() else self.calculation_asset
         self.calculation_fiat = self.item.amount_fiat
 
         self.calculation_asset -= self.staked_asset
         self.calculation_fiat -= self.staked_fiat
-
-    @property
-    def asset_value(self):
-        return self.item.amount_asset
-
-    @property
-    def fiat_value(self):
-        return self.item.amount_fiat
-
-    def is_other_item_older(self, other_item):
-        return self.item.time < other_item.item.time
 
     def is_buy_type(self):
         return self.item.type == "buy"
@@ -145,6 +140,13 @@ class CalcAssetItem:
 
     def is_outgoing(self):
         return self.item.in_out == "outgoing"
+
+    def is_other_item_older(self, other_item):
+        return self.item.time < other_item.item.time
+
+    @property
+    def unpaid_fee(self):
+        return self.item.fee - self.payed_fee
 
     def is_processed(self):
         return self.calculation_asset == 0
@@ -240,35 +242,51 @@ class CalcAssetItem:
 
         return log
 
+    def _withdrawal_base(self, crypto_amount, fiat_amount, withdrawal_item, log):
+        percentage_crypto_item = _get_percentage_of(crypto_amount, withdrawal_item.calculation_asset)
+        withdrew_asset = crypto_amount * percentage_crypto_item
+        withdrew_fiat = fiat_amount * percentage_crypto_item
+
+        percentage_without_fee = 1
+        if withdrawal_item.calculation_asset - withdrew_asset < withdrawal_item.unpaid_fee:
+            withdrawal_asset_without_fee = withdrawal_item.calculation_asset - withdrawal_item.unpaid_fee
+            if withdrawal_asset_without_fee == 0:
+                percentage_without_fee = 0
+            else:
+                percentage_without_fee = _get_percentage_of(withdrew_asset, withdrawal_asset_without_fee)
+
+        withdrew_asset_without_fee = (withdrew_asset * percentage_without_fee)
+        withdrew_fiat_without_fee = (withdrew_fiat * percentage_without_fee)
+
+        fee_asset = withdrew_asset - withdrew_asset_without_fee
+        fee_fiat = withdrew_fiat - withdrew_fiat_without_fee
+
+        withdrawal_item.payed_fee += fee_asset
+        withdrawal_item.calculation_asset -= withdrew_asset
+
+        log += LogMessages.withdrawal_start(self, withdrawal_item, fee_asset=fee_asset, fee_fiat=fee_fiat,
+                                            p_in_n=percentage_crypto_item, amount_asset=withdrew_asset, amount_fiat=withdrew_fiat)
+        return withdrew_asset, withdrew_fiat, withdrew_asset_without_fee, withdrew_fiat_without_fee, fee_asset, log
+
     def withdrawal_outgoing(self, withdrawal_item, log):
-        percentage_crypto_item = _get_percentage_of(self.calculation_asset, withdrawal_item.calculation_asset)
-        amount = self.calculation_asset * percentage_crypto_item
-        amount_fiat = self.calculation_fiat * percentage_crypto_item
+        withdrawal_data = self._withdrawal_base(self.calculation_asset, self.calculation_fiat, withdrawal_item, log)
+        amount, amount_fiat, withdrew_asset, withdrew_fiat, fee_asset, log = withdrawal_data
 
-        log += LogMessages.withdrawal_start(self, withdrawal_item, p_in_n=percentage_crypto_item, amount_asset=amount, amount_fiat=amount_fiat)
-
-        self.withdrew_asset += amount
-        self.withdrew_fiat += amount_fiat
+        self.withdrew_asset += withdrew_asset
+        self.withdrew_fiat += withdrew_fiat
         self.calculation_asset -= amount
         self.calculation_fiat -= amount_fiat
-        withdrawal_item.calculation_asset -= amount
 
         return log + LogMessages.withdrawal_end(self, withdrawal_item)
 
     def withdrawal_incoming(self, withdrawal_item, log):
-        percentage_crypto_item = _get_percentage_of(self.withdrew_asset, withdrawal_item.calculation_asset)
-        amount = self.withdrew_asset * percentage_crypto_item
-        amount_fiat = self.withdrew_fiat * percentage_crypto_item
-
-        log += LogMessages.withdrawal_start(self, withdrawal_item, p_in_n=percentage_crypto_item, amount_asset=amount, amount_fiat=amount_fiat)
+        withdrawal_data = self._withdrawal_base(self.withdrew_asset, self.withdrew_fiat, withdrawal_item, log)
+        amount, amount_fiat, withdrew_asset, withdrew_fiat, fee_asset, log = withdrawal_data
 
         self.withdrew_asset -= amount
         self.withdrew_fiat -= amount_fiat
-        self.calculation_asset += amount
-        self.calculation_fiat += amount_fiat
-        withdrawal_item.calculation_asset -= amount
-
-   ## costssss
+        self.calculation_asset += withdrew_asset
+        self.calculation_fiat += withdrew_fiat
 
         return log + LogMessages.transfer_end(self, withdrawal_item)
 
